@@ -1,63 +1,66 @@
 open Raylib
 
+module Component = struct
+
+  type turns = int
+  type damage = int
+
+  type _spell = 
+    | Impact of damage
+    | Stun of turns
+    | Bleed of damage * turns
+    | Heal of damage
+
+  type _weapon = 
+    | Knives of damage
+    | Power_sword of (_t -> _t)
+    | Staff of damage
+
+  and _comp_2_comp = _t -> _t
+  and _comp_2_unit = _t -> unit
+  and _unit_2_comp = unit -> _t
+  and _unit_2_unit = unit -> unit
+
+  and _system =
+    | Comp2Comp of _comp_2_comp
+    | Comp2Unit of _comp_2_unit
+    | Unit2Comp of _unit_2_comp
+    | Unit2Unit of _unit_2_unit
+
+  and _components = _t list
+
+  and _t = 
+    | Health of int
+    | Sanity of int
+    | Will of int
+    | Spell of _spell
+    | Draw of _system
+    | Armour of int
+    | Weapon of _weapon
+    | Movement of int
+    | Targets of _components
+    | Visible of bool
+    | Inventory of _components
+
+end
+
 let window_width = 800
 let window_height = 450
 
-type species = 
-  | Unknown
-  | Human
-  | Mekkan
-
-let setup () =
-  Raylib.init_window window_width window_height "raylib [core] example - basic window";
-  Raylib.set_target_fps 60;
-  0
-
-let draw_character (species: species) x y = 
-  match species with 
-  | Unknown -> draw_rectangle x y 10 10 Color.gray
-  | Human -> draw_rectangle x y 10 10 Color.darkblue
-  | Mekkan -> draw_circle x y 50.0 Color.orange
-
-let create_character (s: species) : unit = 
-  match s with 
-  | Unknown -> ()
-  | Human -> ()
-  | Mekkan -> ()
-
-module Component = struct
-  type id = int
-  type name = 
-    | Unknown
-    | Name of string
-  type attribute = 
-    | Unknown
-    | Vexing of int
-    | Invigorating of int
-    | Malice of int
-    | Psychosis of int
-    | Will of int
-end
-
-
-module Entity = struct
-  type id = int
-end
-
 type world = int
 
-type _entity_id = int
+let empty_world = 0
+
+let setup () =
+  Raylib.init_window window_width window_height "basic window";
+  Raylib.set_target_fps 60;
+  empty_world
 
 let _roll (dN) = 1 + Random.int (dN)
 
 let draw_background () = 
   begin
     clear_background Color.gold;
-    draw_rectangle 10 10 15 15 Color.darkgreen;
-    draw_character Human 40 40;
-    draw_character Unknown 100 300;
-    draw_character Mekkan 300 100;
-    create_character Mekkan;
   end
 
 let draw () = 
