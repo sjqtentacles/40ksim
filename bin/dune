@@ -1,4 +1,0 @@
-(executable
- (public_name app)
- (name main)
- (libraries raylib))
