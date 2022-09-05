@@ -4,6 +4,8 @@
 
 (struct component (type attrs) #:transparent)
 
+(struct system (name logic) #:transparent)
+
 (define (new-world)
   (hash
    'step 0 ; a world step counter, think of it like time
@@ -55,6 +57,13 @@
    (hash-ref-lens 'systems)
    world
    (λ (systems) (cons system systems))))
+
+(define (remove-entity-from-entities world id)
+  (lens-transform (hash-ref-lens 'entities) world (λ (ents-map) (hash-remove ents-map id))))
+
+(define (remove-component-type-from-components world comp-type)
+  (lens-transform (hash-ref lens 'components) world (λ (comps-map) (hash-remove comps-map comp-type))))
+
 
 
 (define test-uuid (uuid-string))
