@@ -6,6 +6,7 @@
 
 (struct system (name logic) #:transparent)
 
+; makes a new empty hashmap for the world state
 (define (new-world)
   (hash
    'step 0 ; a world step counter, think of it like time
@@ -49,22 +50,39 @@
 (define (run-all-systems world)
   (let* ([next-world (update-world-step world)]
         [systems (hash-ref next-world 'systems)])
-    (foldl (λ (sys w) (sys w)) next-world systems)))
+    (foldl (λ (sys w) ((system-logic sys) w)) next-world systems)))
 
-; world (world -> world) -> world
+; world -> (world -> world) -> world
 (define (add-new-system world system)
   (lens-transform
    (hash-ref-lens 'systems)
    world
    (λ (systems) (cons system systems))))
 
+; world -> uuid -> world
 (define (remove-entity-from-entities world id)
-  (lens-transform (hash-ref-lens 'entities) world (λ (ents-map) (hash-remove ents-map id))))
+  (lens-transform
+   (hash-ref-lens 'entities)
+   world
+   (λ (ents-map) (hash-remove ents-map id))))
 
+; world -> component-type -> world
 (define (remove-component-type-from-components world comp-type)
-  (lens-transform (hash-ref lens 'components) world (λ (comps-map) (hash-remove comps-map comp-type))))
+  (lens-transform
+   (hash-ref-lens 'components)
+   world
+   (λ (comps-map) (hash-remove comps-map comp-type))))
 
+; components list -> component-type -> components list
+(define (remove-components-with-type comps-list comp-type)
+  (filter (λ (c) (not (equal? (component-type c) comp-type))) comps-list))
 
+; world -> uuid -> component-type -> world
+(define (remove-components-from-entity-with-type world ent-id comp-type)
+  (lens-transform
+   (hash-ref-nested-lens 'entities ent-id)
+   world
+   (λ (comps) (remove-components-with-type comps comp-type))))
 
 (define test-uuid (uuid-string))
 
@@ -72,7 +90,7 @@
   (~> (new-world)
       (add-new-entity _ test-uuid)
       (add-component-to-entity _ (component 'spell (hash 'name "fire" 'damage 3)) test-uuid)
-      (add-new-system _ (λ (w) (begin (print "hi") w)))
+      (add-new-system _ (system "hi-test" (λ (w) (begin (print "hi") w))))
       run-all-systems))
 
 (main)
