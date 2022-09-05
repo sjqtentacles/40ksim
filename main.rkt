@@ -7,17 +7,21 @@
 (define (new-world)
   (hash
    'step 0 ; a world step counter, think of it like time
-   'entities null ; Entities hashmap UUIDs to Components
-   'components null ; Components hashmap component "types" to entity UUIDs
+   'entities (make-hash) ; Entities hashmap UUIDs to Components
+   'components (make-hash) ; Components hashmap component "types" to entity UUIDs
    'systems null ; Systems list of functions that work on entities/components
    'db null)) ; db is a caching queue for entity addition/removal etc
 
 (define (get-entity world id)
   (lens-view (hash-ref-nested-lens 'entities id) world))
 
+(define (add-component-to-entities world comp id)
+  (let ([l (hash-ref-nested-lens 'entities id)])
+    (lens-transform l world (λ (comps) (cons comp comps)))))
+
 ; Returns a uuid string
-(define (add-new-entity world)
-  (lens-set (hash-ref-lens 'entities) world (uuid-string)))
+(define (add-new-entity world id)
+  (lens-set (hash-ref-lens 'entities) world (hash id null)))
 
 (define (update-world-step w)
   (lens-transform (hash-ref-lens 'step) w add1))
@@ -28,19 +32,19 @@
         [systems (hash-ref next-world 'systems)])
     (foldl (λ (sys w) (sys w)) next-world systems)))
 
-(define (new-component type)
-  (hash 'type type))
-
 (define (add-new-system world system)
   (lens-transform
    (hash-ref-lens 'systems)
    world
    (λ (systems) (cons system systems))))
 
+(define test-uuid (uuid-string))
+
 (define (main)
   (~> (new-world)
-      add-new-entity
-      (add-new-system (λ (w) (begin (print "hi") w)))
+      (add-new-entity _ test-uuid)
+      (add-component-to-entities _ (component 'spell (hash 'name "fire" 'damage 3)) test-uuid)
+      (add-new-system _ (λ (w) (begin (print "hi") w)))
       run-all-systems))
 
 (main)
