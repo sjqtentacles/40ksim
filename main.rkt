@@ -16,17 +16,18 @@
    'systems null ; Systems list of functions that work on entities/components
    'db null)) ; db is a caching queue for entity addition/removal etc
 
-; world uuid -> world
 (define/contract (get-entity world id)
   (-> hash? string? hash?)
   (lens-view (hash-ref-nested-lens 'entities id) world))
 
-; world uuid -> boolean
 (define/contract (entity-exists? world id)
-  (-> hash? string? hash?)
+  (-> hash? string? boolean?)
   (hash-has-key? (lens-view (hash-ref-lens 'entities) world) id))
 
-; world component uuid -> world
+(define/contract (component-exists? world comp-type)
+  (-> hash? (or/c string? symbol?) boolean?)
+  (hash-has-key? (lens-view (hash-ref-lens 'components) world) comp-type))
+
 (define/contract (add-component-to-entity world comp id)
   (-> hash? component? string? hash?)
   (let* ([ent-id-lens (hash-ref-nested-lens 'entities id)] ; getting entity uuid's hashmap
@@ -42,24 +43,20 @@
                             null)))])
     (lens-transform ent-id-lens with-updated-components (λ (comps) (cons comp comps)))))
 
-; world uuid -> world
 (define/contract (add-new-entity world id)
   (-> hash? string? hash?)
   (lens-set (hash-ref-lens 'entities) world (hash id null)))
 
-; world -> world
 (define/contract (update-world-step w)
   (-> hash? hash?)
   (lens-transform (hash-ref-lens 'step) w add1))
 
-; Returns a new world after running all systems in order
 (define/contract (run-all-systems world)
   (-> hash? hash?)
   (let* ([next-world (update-world-step world)]
         [systems (hash-ref next-world 'systems)])
     (foldl (λ (sys w) ((system-logic sys) w)) next-world systems)))
 
-; world -> (world -> world) -> world
 (define/contract (add-new-system world system)
   (-> hash? system? hash?)
   (lens-transform
@@ -67,7 +64,6 @@
    world
    (λ (systems) (cons system systems))))
 
-; world -> uuid -> world
 (define/contract (remove-entity-from-entities world id)
   (-> hash? string? hash?)
   (lens-transform
@@ -75,7 +71,6 @@
    world
    (λ (ents-map) (hash-remove ents-map id))))
 
-; world -> component-type -> world
 (define/contract (remove-component-type-from-components world comp-type)
   (-> hash? (or/c string? symbol?) hash?)
   (lens-transform
@@ -83,12 +78,10 @@
    world
    (λ (comps-map) (hash-remove comps-map comp-type))))
 
-; components list -> component-type -> components list
 (define/contract (remove-components-with-type comps-list comp-type)
   (-> (listof (or/c string? symbol?)) (or/c string? symbol?) (listof (or/c string? symbol?)))
   (filter (λ (c) (not (equal? (component-type c) comp-type))) comps-list))
 
-; world -> uuid -> component-type -> world
 (define/contract (remove-components-from-entity-with-type world ent-id comp-type)
   (-> hash? string? (or/c string? symbol?) hash?)
   (lens-transform
