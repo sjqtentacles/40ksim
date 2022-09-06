@@ -6,6 +6,8 @@
 
 (struct system (name logic) #:transparent)
 
+(define comp-type? (or/c string? symbol?))
+
 ; makes a new empty hashmap for the world state
 (define/contract (new-world)
   (-> hash?)
@@ -25,7 +27,7 @@
   (hash-has-key? (lens-view (hash-ref-lens 'entities) world) id))
 
 (define/contract (component-exists? world comp-type)
-  (-> hash? (or/c string? symbol?) boolean?)
+  (-> hash? comp-type? boolean?)
   (hash-has-key? (lens-view (hash-ref-lens 'components) world) comp-type))
 
 (define/contract (add-component-to-entity world comp id)
@@ -72,18 +74,18 @@
    (λ (ents-map) (hash-remove ents-map id))))
 
 (define/contract (remove-component-type-from-components world comp-type)
-  (-> hash? (or/c string? symbol?) hash?)
+  (-> hash? comp-type? hash?)
   (lens-transform
    (hash-ref-lens 'components)
    world
    (λ (comps-map) (hash-remove comps-map comp-type))))
 
 (define/contract (remove-components-with-type comps-list comp-type)
-  (-> (listof (or/c string? symbol?)) (or/c string? symbol?) (listof (or/c string? symbol?)))
+  (-> (listof comp-type?)  comp-type? (listof comp-type?))
   (filter (λ (c) (not (equal? (component-type c) comp-type))) comps-list))
 
 (define/contract (remove-components-from-entity-with-type world ent-id comp-type)
-  (-> hash? string? (or/c string? symbol?) hash?)
+  (-> hash? string? comp-type? hash?)
   (lens-transform
    (hash-ref-nested-lens 'entities ent-id)
    world
