@@ -39,6 +39,7 @@
       (add-component-to-entity _ (component 'spell (hash 'name "fire" 'damage 3)) test-uuid)
       (add-component-to-entity (health 100) test-uuid)
       (add-new-system _ (system "hi-test" (λ (w) (begin (print "hi") w))))
+      (remove-entity test-uuid)
       run-all-systems))
 
 (main)

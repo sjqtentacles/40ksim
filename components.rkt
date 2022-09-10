@@ -49,3 +49,18 @@
 (define/contract (visible is-visible?)
   (-> boolean? component?)
   (component 'visible (hash 'visible is-visible?)))
+
+(define/contract (remove-unused-components world)
+  (-> hash? hash?)
+  (let* ([l (hash-ref-lens 'components)]
+        [comps (lens-view l world)]
+        [mapped-lengths (hash-map comps (λ (k v)
+                                          (k . (length v))))]
+        [empty-components (filter (λ (kv-pair)
+                                    (equal? 0 (cdr kv-pair))) mapped-lengths)]
+        [empty-comp-types (hash-keys empty-components)])
+    (foldl (λ (t h)
+             (lens-transform l h (λ (cs)
+                                   (hash-remove cs t)))) ; here we update the comps hash
+           world
+           empty-comp-types)))
