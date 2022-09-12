@@ -21,3 +21,8 @@
   [world]
   (let [unused-types (get-unused-components world)]
     (reduce (fn [acc k] (dissoc acc k)) world unused-types)))
+
+(defn remove-all-components
+  [world]
+  (let [with-empty-comps (assoc world :components {})]
+    (reduce-kv (fn [m k v] (assoc m k nil)) {} with-empty-comps)))

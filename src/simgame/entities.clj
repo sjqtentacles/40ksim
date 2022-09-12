@@ -30,6 +30,10 @@
   [world id]
   (map (fn [comp] (get comp :type)) (get-in world [:entities id])))
 
+(defn entity-has-component-with-type?
+  [world id type]
+  (contains? (get-entity-components-types world id) type))
+
 (defn remove-entity
   [world id]
   (let [w (dissoc world :entities id)]
@@ -38,6 +42,10 @@
         (update m k (filter (fn [e] (not= e id)) v)))
       {}
       w)))
+
+(defn remove-all-entities
+  [world]
+  (assoc world :entities {}))
 
 (defn remove-components-from-entity-with-type
   [world id type]

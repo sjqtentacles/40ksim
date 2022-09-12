@@ -4,7 +4,7 @@
   [world sys]
   (update-in world [:systems] (fn [syses] (cons sys syses))))
 
-(defn remove-system-by-name
+(defn remove-systems-by-name
   [world name]
   (update-in 
     world 
@@ -23,3 +23,11 @@
 (defn run-systems-by-name
   [world name]
   (reduce (fn [w sys] (sys w)) world (get-systems-by-name world name)))
+
+(defn run-all-systems
+  [world]
+  (reduce (fn [w sys] (sys w)) world (get world :systems)))
+
+(defn remove-all-systems
+  [world]
+  (assoc world :systems nil))
