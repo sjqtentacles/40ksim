@@ -2,7 +2,8 @@
   (:gen-class)
   (:require 
     [simgame.components :as comps]
-    [simgame.entities :as ents]))
+    [simgame.entities :as ents]
+    [simgame.systems :as syses]))
 
 (defn refresh []
   (use 'simgame.core :reload))
@@ -22,5 +23,4 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!")
-  (comps/hi))
+  (println "Hello, World!"))
